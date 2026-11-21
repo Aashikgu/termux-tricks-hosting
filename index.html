@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TERMUX TRICKS | Command Learning</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#080d18;color:#e8efff;font-family:Arial,sans-serif}
+header{text-align:center;padding:45px 15px;background:linear-gradient(135deg,#101d39,#123d55)}
+h1{color:#00e5a8;font-size:30px}
+header p{color:#c3d5ed}
+main{max-width:850px;margin:auto;padding:18px}
+.card{background:#111c30;border:1px solid #263957;padding:18px;border-radius:13px;margin:18px 0}
+h2{color:#00e5a8}
+pre{background:#050912;padding:15px;border-radius:9px;overflow:auto;color:#8cffc9}
+button{background:#00d9a0;color:#04130e;border:0;padding:10px 17px;border-radius:7px;font-weight:bold}
+footer{text-align:center;padding:25px;color:#9aacc5}
+</style>
+</head>
+<body>
+<header>
+<h1>⚡ TERMUX TRICKS</h1>
+<p>Learn Termux, Linux, Python & GitHub Commands in Hindi</p>
+</header>
+<main>
+<div class="card">
+<h2>🐧 1. Termux Basic Commands</h2>
+<p>पैकेज अपडेट करने के लिए:</p>
+<pre id="c1">pkg update && pkg upgrade</pre>
+<button onclick="copy('c1',this)">Copy Command</button>
+<p>नई फाइल बनाने के लिए:</p>
+<pre id="c2">touch file.txt</pre>
+<button onclick="copy('c2',this)">Copy Command</button>
+</div>
+
+<div class="card">
+<h2>📦 2. Package Installation</h2>
+<p>Python इंस्टॉल करें:</p>
+<pre id="c3">pkg install python -y</pre>
+<button onclick="copy('c3',this)">Copy Command</button>
+<p>Git इंस्टॉल करें:</p>
+<pre id="c4">pkg install git -y</pre>
+<button onclick="copy('c4',this)">Copy Command</button>
+</div>
+
+<div class="card">
+<h2>🐍 3. Python Commands</h2>
+<p>Python Version चेक करें:</p>
+<pre id="c5">python --version</pre>
+<button onclick="copy('c5',this)">Copy Command</button>
+<p>Python Shell खोलें:</p>
+<pre id="c6">python</pre>
+<button onclick="copy('c6',this)">Copy Command</button>
+</div>
+
+<div class="card">
+<h2>🌐 4. Local Website Hosting</h2>
+<p>Python से लोकल सर्वर शुरू करें:</p>
+<pre id="c7">python -m http.server 8000</pre>
+<button onclick="copy('c7',this)">Copy Command</button>
+<p>ब्राउज़र में खोलें: http://127.0.0.1:8000</p>
+</div>
+
+<div class="card">
+<h2>🔗 5. Git & GitHub</h2>
+<p>Git Version:</p>
+<pre id="c8">git --version</pre>
+<button onclick="copy('c8',this)">Copy Command</button>
+<p>Repository डाउनलोड करें:</p>
+<pre id="c9">git clone REPOSITORY_URL</pre>
+<button onclick="copy('c9',this)">Copy Command</button>
+</div>
+
+</main>
+<footer>© 2026 TERMUX TRICKS | Learn • Practice • Create</footer>
+<script>
+function copy(id,btn){
+let text=document.getElementById(id).innerText;
+navigator.clipboard.writeText(text).then(()=>{
+btn.innerText="Copied!";
+setTimeout(()=>btn.innerText="Copy Command",1500);
+}).catch(()=>alert("Command copy nahi hua. Long press karke copy karein."));
+}
+</script>
+</body>
+</html>
