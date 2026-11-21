@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TERMUX TRICKS STORE</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#100d19;color:#fff;font-family:Arial,sans-serif}
+header{padding:18px 15px;background:#191326;display:flex;justify-content:space-between;align-items:center}
+.logo{font-size:19px;font-weight:bold;color:#c6a0ff}
+.header-btn{background:#302342;color:white;border:0;padding:9px;border-radius:10px}
+.search{margin:15px;display:flex;background:#211a2e;border-radius:14px;padding:12px}
+.search input{background:none;border:0;outline:none;color:white;width:100%;font-size:15px}
+.categories{display:flex;gap:9px;overflow:auto;padding:5px 15px 15px}
+.categories button{white-space:nowrap;background:#251d34;border:1px solid #49365e;color:white;padding:10px 15px;border-radius:20px}
+.categories button.active{background:#8b55d9}
+h3{padding:0 15px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:12px}
+.card{background:#211a2e;border-radius:15px;padding:12px;text-align:center;min-width:0;cursor:pointer}
+.icon{width:55px;height:55px;border-radius:15px;background:#39284f;margin:auto;display:grid;place-items:center;font-size:30px}
+.name{font-size:13px;font-weight:bold;margin-top:10px;overflow-wrap:anywhere}
+.rating{font-size:11px;color:#ffc65c;margin-top:6px}
+.bottom{position:fixed;bottom:0;left:0;right:0;background:#191326;display:flex;justify-content:space-around;padding:13px 3px;border-top:1px solid #382b49}
+.bottom button{background:none;border:0;color:#cbbbdc;font-size:12px}
+#details{display:none;padding:20px}
+.detail-icon{font-size:65px;background:#2b203b;width:100px;height:100px;border-radius:22px;display:grid;place-items:center}
+.download{display:block;background:#9255df;color:white;text-align:center;padding:14px;border-radius:12px;text-decoration:none;margin:20px 0}
+.back{background:#302342;color:white;border:0;padding:10px;border-radius:10px}
+.info{color:#c7b9d7;line-height:1.7}
+main{padding-bottom:75px}
+</style>
+</head>
+<body>
+<header>
+<div class="logo">⚡ TERMUX TRICKS</div>
+<div><a href="/admin" style="color:white;text-decoration:none;margin-right:10px">🔐 Admin</a><button class="header-btn" onclick="toggleTheme()">☀️</button></div>
+</header>
+
+<div id="notificationBar" style="margin:12px 15px;padding:12px;background:#251d34;border-radius:12px;color:#d8bdff">🔔 कोई नया नोटिफिकेशन नहीं</div>
+<main id="home">
+<div class="search">
+<input id="search" placeholder="🔍 Search Apps & Games..." oninput="render()">
+</div>
+
+<div class="categories" id="categories">
+<button class="active" onclick="setCategory('All',this)">All Apps</button>
+<button onclick="setCategory('Apps',this)">Apps</button>
+<button onclick="setCategory('Games',this)">Games</button>
+<button onclick="setCategory('Top Apps',this)">Top Apps</button>
+<button onclick="setCategory('Books',this)">Books</button>
+<button onclick="setCategory('PDF Books',this)">📖 PDF Books</button>
+<button onclick="setCategory('Terminal',this)">💻 Terminal</button>
+</div>
+
+<h3 id="heading">🔥 All Apps</h3>
+<div class="grid" id="grid"></div>
+</main>
+
+<section id="details">
+<button class="back" onclick="goHome()">← Back</button>
+<div style="margin-top:25px" id="detailContent"></div>
+</section>
+
+<nav class="bottom">
+<button onclick="setCategory('All',document.querySelector('.categories button'))">🏠<br>Home</button>
+<button onclick="setCategory('Games',document.querySelectorAll('.categories button')[2])">🎮<br>Games</button>
+<button onclick="setCategory('Top Apps',document.querySelectorAll('.categories button')[3])">🏆<br>Top Apps</button>
+<button onclick="setCategory('Books',document.querySelectorAll('.categories button')[4])">📚<br>Books</button>
+</nav>
+
+<script>
+let apps=[];
+let category='All';
+
+async function loadApps(){
+try{
+let response=await fetch('/api/apps');
+apps=await response.json();
+render();
+}catch(e){
+document.getElementById('grid').innerHTML='<p>Apps load नहीं हुए। सर्वर चेक करें।</p>';
+}
+}
+
+function render(){
+let query=document.getElementById('search').value.toLowerCase();
+let list=apps.filter(a=>{
+let cat=(a.category||'').toLowerCase();
+let matchCategory=category==='All'||
+(category==='Top Apps'?Number(a.rating||0)>=4:
+category==='Apps'?cat==='apps':
+category==='Games'?cat==='games':
+category==='Books'?(cat==='books'||cat==='books (apk)'):
+category==='PDF Books'?cat==='pdf books':
+category==='Terminal'?cat==='terminal':true);
+return matchCategory&&(a.name||'').toLowerCase().includes(query);
+});
+document.getElementById('heading').textContent='🔥 '+category;
+document.getElementById('grid').innerHTML=list.map((a,i)=>`
+<div class="card" onclick="showDetails(${apps.indexOf(a)})">
+<div class="icon">${a.icon_url ? `<img src="${escapeHTML(a.icon_url)}" style="width:55px;height:55px;object-fit:cover;border-radius:15px">` : escapeHTML(a.icon||"📱")}</div>
+<div class="name">${escapeHTML(a.name)}</div>
+<div class="rating">⭐ ${Number(a.rating||0).toFixed(1)}</div>
+</div>`).join('')||'<p style="padding:15px">अभी कोई ऐप उपलब्ध नहीं है।</p>';
+}
+
+function escapeHTML(value){
+return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function setCategory(cat,button){
+category=cat;
+document.querySelectorAll('.categories button').forEach(b=>b.classList.remove('active'));
+if(button)button.classList.add('active');
+render();
+}
+
+function showDetails(i){
+let a=apps[i];
+if(!a)return;
+document.getElementById('home').style.display='none';
+document.getElementById('details').style.display='block';
+document.getElementById('detailContent').innerHTML=`
+<div class="detail-icon">${a.icon_url ? `<img src="${escapeHTML(a.icon_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:22px">` : escapeHTML(a.icon||'📱')}</div>
+<h2>${escapeHTML(a.name)}</h2>
+<p class="info">⭐ ${Number(a.rating||0).toFixed(1)} / 5 · ${Number(a.reviews||0)} Ratings</p>
+<p class="info">📥 ${Number(a.downloads||0)} Downloads</p>
+<div style="margin:15px 0;padding:14px;background:#29213d;border-radius:12px">
+  <b>इस कंटेंट को रेटिंग दें</b>
+  <div style="font-size:30px;margin-top:8px">
+    ${[1,2,3,4,5].map(n => `<button onclick="rateItem(${i},${n})" style="font-size:28px;background:none;border:0;color:#ffc107;padding:3px">★</button>`).join('')}
+  </div>
+  <p id="rating-message" style="font-size:13px"></p>
+</div>
+<p class="info">Category: ${escapeHTML(a.category)}</p>
+<p class="info">${escapeHTML(a.description)}</p>
+<a class="download" href="${escapeHTML(a.file)}">⬇ ${a.file_type==='pdf' || (a.category||'').toLowerCase()==='pdf books' ? 'Download PDF' : 'Download APK'}</a>
+<button class="back" onclick="shareApp('${encodeURIComponent(a.name)}')">Share App</button>
+`;
+window.scrollTo(0,0);
+}
+
+async function rateItem(index, rating){
+  const key = "rated_item_" + index;
+
+  if(localStorage.getItem(key)){
+    alert("आप इस कंटेंट को पहले ही रेटिंग दे चुके हैं।");
+    return;
+  }
+
+  try{
+    const response = await fetch("/api/rate/" + index, {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({rating:rating})
+    });
+
+    const result = await response.json();
+
+    if(!response.ok){
+      alert(result.error || "Rating सेव नहीं हुई।");
+      return;
+    }
+
+    localStorage.setItem(key, "yes");
+    apps[index].rating = result.rating;
+    apps[index].reviews = result.reviews;
+
+    document.getElementById("rating-message").textContent =
+      "धन्यवाद! आपकी रेटिंग सेव हो गई। ⭐ " +
+      result.rating + " (" + result.reviews + " Ratings)";
+
+    render();
+  }catch(error){
+    alert("Server से कनेक्शन नहीं हुआ।");
+  }
+}
+
+function shareApp(name){
+let title=decodeURIComponent(name);
+if(navigator.share)navigator.share({title,url:location.href});
+else alert('Share: '+title+' - '+location.href);
+}
+
+function goHome(){
+document.getElementById('details').style.display='none';
+document.getElementById('home').style.display='block';
+}
+
+function toggleTheme(){
+document.body.classList.toggle('light');
+if(document.body.classList.contains('light')){
+document.body.style.background='#eee';
+document.body.style.color='#211a2e';
+}else{
+document.body.style.background='#100d19';
+document.body.style.color='#fff';
+}
+}
+
+async function loadNotifications(){
+ try{
+  const r=await fetch('/api/notifications');
+  const notes=await r.json();
+  const bar=document.getElementById('notificationBar');
+  bar.innerHTML=notes.length
+   ? '🔔 '+notes.slice(0,3).map(n=>escapeHTML(n.message||n.title)).join(' • ')
+   : '🔔 कोई नया नोटिफिकेशन नहीं';
+ }catch(e){}
+}
+setInterval(loadNotifications,5000);
+loadNotifications();
+loadApps();
+
+</script>
+
+<footer style="
+background:#1d1730;
+color:white;
+padding:25px 15px;
+margin-top:35px;
+text-align:center;
+border-top:2px solid #7046a8;
+">
+  <h2>⚡ TERMUX TRICKS STORE</h2>
+  <p>Apps • Games • Terminal • PDF Books</p>
+
+  <h3>🌐 Connect With Us</h3>
+
+  <a href="https://www.youtube.com/@aashikgurbele9913"
+     target="_blank" rel="noopener noreferrer"
+     style="display:inline-block;background:#e53935;color:white;
+     padding:12px 20px;margin:7px;border-radius:10px;
+     text-decoration:none;font-weight:bold;">
+     ▶ YouTube
+  </a>
+
+  <a href="https://github.com/Aashikgu"
+     target="_blank" rel="noopener noreferrer"
+     style="display:inline-block;background:#333;color:white;
+     padding:12px 20px;margin:7px;border-radius:10px;
+     text-decoration:none;font-weight:bold;">
+     💻 GitHub
+  </a>
+
+  <p style="font-size:12px;margin-top:20px;color:#bbb;">
+    © 2026 TERMUX TRICKS STORE. All Rights Reserved.
+  </p>
+</footer>
+
+</body>
+</html>
